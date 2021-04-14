@@ -1,6 +1,23 @@
 #include <stdio.h>
 #include <X11/Xlib.h>
 
+void do_stuff(Display *display) {
+	XEvent xevent;
+	for (size_t i = 0; i < sizeof(xevent); i++) {
+		*((unsigned char *)&xevent) = 0x00;
+	}
+	
+	while (BadWindow != XNextEvent(display, &xevent)) {
+		fprintf(stderr, "Pointer coordinates: %d, %d\n",
+			xevent.xmotion.x_root,
+			xevent.xmotion.y_root);
+		if (KeyRelease == xevent.xkey.type &&
+			24 == xevent.xkey.keycode) {  // q
+			break;
+		}
+	}
+}
+
 void x11_demo(void) {
 	Display *display = XOpenDisplay(NULL);
 	if (display == NULL) {
@@ -34,21 +51,9 @@ void x11_demo(void) {
 			fprintf(stderr, "%s\n", "XSelectInput() failed");
 	}
 	
-	XEvent xevent;
-	for (size_t i = 0; i < sizeof(xevent); i++) {
-		*((unsigned char *)&xevent) = 0x00;
-	}
-	
+
 	// === DO STUFF HERE ===
-	while (BadWindow != XNextEvent(display, &xevent)) {
-		fprintf(stderr, "Pointer coordinates: %d, %d\n",
-			xevent.xmotion.x_root,
-			xevent.xmotion.y_root);
-		if (KeyRelease == xevent.xkey.type &&
-			24 == xevent.xkey.keycode) {  // q
-			break;
-		}
-	}
+	do_stuff(display);
 	// === END DO STUFF ===
 	
 	XDestroyWindow(display, window);
